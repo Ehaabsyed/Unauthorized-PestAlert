@@ -1,6 +1,8 @@
 import * as tmImage from '@teachablemachine/image';
 
-const MODEL_URL = '/models/';
+const MODEL_URL = typeof window !== 'undefined' 
+  ? window.location.origin + '/models/' 
+  : '/models/';
 
 export interface PredictionResult {
   className: string;
