@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useAuth } from '@/lib/firebase/auth-context'
+import { useAuth } from '@/lib/supabase/auth-context'
 import { useAppStore } from '@/lib/store'
 import { useTheme } from 'next-themes'
 import {

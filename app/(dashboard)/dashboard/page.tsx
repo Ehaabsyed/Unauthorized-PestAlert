@@ -34,7 +34,7 @@ import {
   Zap,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useAuth } from '@/lib/firebase/auth-context'
+import { useAuth } from '@/lib/supabase/auth-context'
 import { useDashboardStats } from '@/hooks/use-supabase'
 
 const cropHealthData = [

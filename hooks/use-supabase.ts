@@ -23,6 +23,7 @@ export function useProfile(userId: string | undefined) {
     setLoading(true)
     setError(null)
     const supabase = createClient()
+    if (!supabase) { setLoading(false); return }
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -38,6 +39,7 @@ export function useProfile(userId: string | undefined) {
   const upsertProfile = async (updates: Partial<Profile>) => {
     if (!userId) return { error: 'Not authenticated' }
     const supabase = createClient()
+    if (!supabase) return { error: 'Supabase not configured' }
     const { data, error } = await supabase
       .from('profiles')
       .upsert({ id: userId, ...updates, updated_at: new Date().toISOString() })
@@ -62,6 +64,7 @@ export function useAIDetections(userId: string | undefined, limit = 20) {
     setLoading(true)
     setError(null)
     const supabase = createClient()
+    if (!supabase) { setLoading(false); return }
     const { data, error } = await supabase
       .from('ai_detections')
       .select('*')
@@ -77,6 +80,7 @@ export function useAIDetections(userId: string | undefined, limit = 20) {
 
   const addDetection = async (detection: Omit<AIDetection, 'id' | 'created_at'>) => {
     const supabase = createClient()
+    if (!supabase) return { error: 'Supabase not configured' }
     const { data, error } = await supabase
       .from('ai_detections')
       .insert(detection)
@@ -256,6 +260,7 @@ export function useReports(userId: string | undefined) {
     setError(null)
     try {
       const supabase = createClient()
+      if (!supabase) { setLoading(false); return }
       const { data, error } = await supabase
         .from('reports')
         .select('*')
@@ -277,6 +282,7 @@ export function useReports(userId: string | undefined) {
 
   const createReport = async (report: Omit<Report, 'id' | 'created_at'>) => {
     const supabase = createClient()
+    if (!supabase) return { error: 'Supabase not configured' }
     const { data, error } = await supabase
       .from('reports')
       .insert(report)
@@ -312,6 +318,7 @@ export function useDashboardStats(userId: string | undefined) {
   useEffect(() => {
     if (!userId) { setLoading(false); return }
     const supabase = createClient()
+    if (!supabase) { setLoading(false); return }
 
     async function fetchAll() {
       setLoading(true)

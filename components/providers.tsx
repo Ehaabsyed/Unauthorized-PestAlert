@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
-import { AuthProvider } from '@/lib/firebase/auth-context'
+import { AuthProvider } from '@/lib/supabase/auth-context'
 import { ThemeProvider } from '@/components/theme-provider'
 import ErrorBoundary from '@/components/error-boundary'
 

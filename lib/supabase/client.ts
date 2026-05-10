@@ -4,11 +4,15 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export function createClient() {
-  if (!supabaseUrl || !supabaseAnonKey || !supabaseUrl.startsWith('http')) {
-    console.warn('Supabase credentials missing or invalid. Returning null client.')
-    return null
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key || url === 'PLACEHOLDER' || !url.startsWith('https://')) {
+    console.warn('[Supabase] Missing or invalid credentials. Database features will be simulated.');
+    return null;
   }
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  
+  return createBrowserClient(url, key);
 }
 
 export const hasSupabaseConfig = !!(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'))

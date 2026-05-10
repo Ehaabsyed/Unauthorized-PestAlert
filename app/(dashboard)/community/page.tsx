@@ -23,7 +23,7 @@ import {
   Search,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useAuth } from '@/lib/firebase/auth-context'
+import { useAuth } from '@/lib/supabase/auth-context'
 import { useCommunityPosts } from '@/hooks/use-supabase'
 
 const trendingTopics = [

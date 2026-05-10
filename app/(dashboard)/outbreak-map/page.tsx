@@ -17,16 +17,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  MapPin,
-  AlertTriangle,
-  Bug,
-  Cloud,
-  Users,
-  Filter,
-  RefreshCw,
   Navigation,
 } from 'lucide-react'
 import type { OutbreakMarker, FarmerMarker } from '@/components/outbreak-map/leaflet-map'
+import { useAuth } from '@/lib/supabase/auth-context'
 
 // Dynamically import Leaflet map to avoid SSR issues
 const LeafletMap = dynamic(
@@ -73,6 +67,7 @@ const getSeverityBadge = (severity: OutbreakMarker['severity']) => {
 }
 
 export default function OutbreakMapPage() {
+  const { user } = useAuth()
   const [selectedOutbreak, setSelectedOutbreak] = useState<OutbreakMarker | null>(null)
   const [showFarmers, setShowFarmers] = useState(true)
   const [showWeather, setShowWeather] = useState(false)

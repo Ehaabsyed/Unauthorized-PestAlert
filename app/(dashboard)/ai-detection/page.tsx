@@ -25,6 +25,8 @@ import {
 import { toast } from 'sonner'
 import { predict, getSeverity, getTreatment } from '@/lib/ai-model'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/lib/supabase/auth-context'
+import { useDetections, useReports } from '@/hooks/use-supabase'
 
 interface DetectionResult {
   pestName: string
@@ -68,6 +70,9 @@ const recentDetections = [
 ]
 
 export default function AIDetectionPage() {
+  const { user } = useAuth()
+  const { addDetection } = useDetections(user?.uid)
+  const { createReport } = useReports(user?.uid)
   const [dragActive, setDragActive] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -75,6 +80,7 @@ export default function AIDetectionPage() {
   const [result, setResult] = useState<DetectionResult | null>(null)
   const [scanProgress, setScanProgress] = useState(0)
   const [history, setHistory] = useState(recentDetections)
+  const [generatingReport, setGeneratingReport] = useState(false)
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -165,6 +171,17 @@ export default function AIDetectionPage() {
           date: 'Just now'
         }
         setHistory(prev => [newHistoryItem, ...prev])
+
+        // Save to Supabase
+        if (user) {
+          addDetection({
+            pest_type: topResult.className.split('__').join(' ').split('_').join(' '),
+            confidence: Math.round(topResult.probability * 100),
+            severity: getSeverity(topResult.className),
+            location: 'Assigned Field', // Default
+            image_url: preview, // In production, upload to bucket first
+          }).catch(err => console.error("Failed to save detection:", err))
+        }
 
         setScanProgress(100)
         toast.success('Analysis complete!')
@@ -337,9 +354,35 @@ export default function AIDetectionPage() {
                         <CheckCircle2 className="w-5 h-5 text-accent" />
                         Analysis Results
                       </CardTitle>
-                      <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-2" />
-                        Export PDF
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        disabled={generatingReport}
+                        onClick={async () => {
+                          if (!user || !result) return;
+                          setGeneratingReport(true);
+                          try {
+                            await createReport({
+                              title: `Detection Report: ${result.pestName}`,
+                              type: 'detection',
+                              content: `Pest: ${result.pestName}\nConfidence: ${result.confidence}%\nSeverity: ${result.severity}\nTreatment: ${result.treatment}`,
+                              data: result,
+                              status: 'ready'
+                            });
+                            toast.success("Report saved to history!");
+                          } catch (err) {
+                            toast.error("Failed to save report");
+                          } finally {
+                            setGeneratingReport(false);
+                          }
+                        }}
+                      >
+                        {generatingReport ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4 mr-2" />
+                        )}
+                        {generatingReport ? 'Saving...' : 'Save Report'}
                       </Button>
                     </div>
                   </CardHeader>

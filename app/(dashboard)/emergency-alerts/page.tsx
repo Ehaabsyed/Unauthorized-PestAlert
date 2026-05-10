@@ -25,6 +25,8 @@ import {
 import { toast } from 'sonner'
 import { SmsNotificationModal } from '@/components/sms/sms-notification-modal'
 import { AlertSettingsModal } from '@/components/alerts/alert-settings-modal'
+import { useAuth } from '@/lib/supabase/auth-context'
+import { useAlerts } from '@/hooks/use-supabase'
 
 const alerts = [
   {
@@ -137,6 +139,8 @@ const getSeverityColor = (severity: string) => {
 }
 
 export default function EmergencyAlertsPage() {
+  const { user } = useAuth()
+  const { alerts: liveAlerts, loading: alertsLoading } = useAlerts(user?.uid)
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('all')
   const [smsModalOpen, setSmsModalOpen] = useState(false)

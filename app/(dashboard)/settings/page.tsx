@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { useAuth } from '@/lib/firebase/auth-context'
+import { useAuth } from '@/lib/supabase/auth-context'
 import { useProfile } from '@/hooks/use-supabase'
 import { useTheme } from 'next-themes'
 import { toast } from 'sonner'

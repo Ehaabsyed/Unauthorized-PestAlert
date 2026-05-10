@@ -44,6 +44,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { useAuth } from '@/lib/supabase/auth-context'
 
 // ─── Mock regional data ───────────────────────────────────────────────────────
 
@@ -116,6 +117,7 @@ const tooltipStyle = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AuthorityPage() {
+  const { user } = useAuth()
   const [searchFarmer, setSearchFarmer] = useState('')
   const [requests, setRequests] = useState(accessRequests)
 

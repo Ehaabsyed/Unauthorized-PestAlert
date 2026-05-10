@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuth } from '@/lib/firebase/auth-context'
+import { useAuth } from '@/lib/supabase/auth-context'
 import { Mail, Lock, Loader2, ArrowLeft, Tractor, Shield } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { toast } from 'sonner'
