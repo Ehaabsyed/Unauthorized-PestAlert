@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 import { AuthProvider } from '@/lib/firebase/auth-context'
 import { ThemeProvider } from '@/components/theme-provider'
+import ErrorBoundary from '@/components/error-boundary'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -21,9 +22,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange={false}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
-      </QueryClientProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
     </ThemeProvider>
   )
 }

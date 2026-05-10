@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { predict, getSeverity, getTreatment } from '@/lib/ai-model'
+import { cn } from '@/lib/utils'
 
 interface DetectionResult {
   pestName: string
@@ -73,6 +74,7 @@ export default function AIDetectionPage() {
   const [analyzing, setAnalyzing] = useState(false)
   const [result, setResult] = useState<DetectionResult | null>(null)
   const [scanProgress, setScanProgress] = useState(0)
+  const [history, setHistory] = useState(recentDetections)
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -153,6 +155,17 @@ export default function AIDetectionPage() {
             'Log this detection in the farm outbreak map'
           ]
         })
+        
+        // Add to history
+        const newHistoryItem = {
+          id: Date.now(),
+          pest: topResult.className.split('__').join(' ').split('_').join(' '),
+          confidence: Math.round(topResult.probability * 100),
+          severity: getSeverity(topResult.className),
+          date: 'Just now'
+        }
+        setHistory(prev => [newHistoryItem, ...prev])
+
         setScanProgress(100)
         toast.success('Analysis complete!')
       }
@@ -231,12 +244,15 @@ export default function AIDetectionPage() {
                 <input
                   type="file"
                   accept="image/*"
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className={cn(
+                    "absolute inset-0 w-full h-full opacity-0",
+                    preview ? "pointer-events-none" : "cursor-pointer"
+                  )}
                   onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                 />
                 
                 {preview ? (
-                  <div className="space-y-4">
+                  <div className="relative z-10 space-y-4">
                     <div className="relative aspect-video max-h-[300px] mx-auto overflow-hidden rounded-lg">
                       <img
                         src={preview}
@@ -416,7 +432,7 @@ export default function AIDetectionPage() {
               <CardTitle className="text-lg">Recent Detections</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentDetections.map((detection) => (
+              {history.map((detection) => (
                 <div
                   key={detection.id}
                   className="p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors cursor-pointer"
