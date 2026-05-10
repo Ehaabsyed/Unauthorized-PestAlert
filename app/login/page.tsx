@@ -13,6 +13,7 @@ import { Mail, Lock, Loader2, ArrowLeft, Tractor, Shield } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useEffect } from 'react'
 
 type Role = 'farmer' | 'authority'
 
@@ -21,8 +22,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<Role>('farmer')
   const [loading, setLoading] = useState(false)
-  const { signIn, signInWithGoogle } = useAuth()
+  const { signIn, signInWithGoogle, user } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    if (user) {
+      router.push(user.role === 'authority' ? '/authority' : '/dashboard')
+    }
+  }, [user, router])
 
   const getAuthErrorMessage = (error: unknown): string => {
     if (!(error instanceof Error)) return 'An unexpected error occurred'

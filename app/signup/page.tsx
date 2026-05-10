@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/firebase/auth-context'
 import { Mail, Lock, User, Loader2, ArrowLeft, Check } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { toast } from 'sonner'
+import { useEffect } from 'react'
 
 export default function SignupPage() {
   const [name, setName] = useState('')
@@ -20,8 +21,14 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [role, setRole] = useState('farmer')
   const [loading, setLoading] = useState(false)
-  const { signUp, signInWithGoogle } = useAuth()
+  const { signUp, signInWithGoogle, user } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard')
+    }
+  }, [user, router])
 
   const getAuthErrorMessage = (error: unknown): string => {
     if (!(error instanceof Error)) return 'An unexpected error occurred'
