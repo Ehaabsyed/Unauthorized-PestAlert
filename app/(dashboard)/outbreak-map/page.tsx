@@ -17,6 +17,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  MapPin,
+  AlertTriangle,
+  Bug,
+  Cloud,
+  Users,
+  Filter,
+  RefreshCw,
   Navigation,
 } from 'lucide-react'
 import type { OutbreakMarker, FarmerMarker } from '@/components/outbreak-map/leaflet-map'
