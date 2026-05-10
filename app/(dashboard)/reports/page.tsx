@@ -225,8 +225,8 @@ export default function ReportsPage() {
                   <AreaChart data={monthlyData}>
                     <defs>
                       <linearGradient id="rpt-detectionsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <XAxis
@@ -250,8 +250,8 @@ export default function ReportsPage() {
                     <Area
                       type="monotone"
                       dataKey="detections"
-                      stroke="hsl(var(--destructive))"
-                      strokeWidth={2}
+                      stroke="#EF4444"
+                      strokeWidth={3}
                       fill="url(#rpt-detectionsGradient)"
                     />
                   </AreaChart>
@@ -293,7 +293,7 @@ export default function ReportsPage() {
                         borderRadius: '8px',
                       }}
                     />
-                    <Bar dataKey="healthy" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="healthy" fill="#22C55E" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

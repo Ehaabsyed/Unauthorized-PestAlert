@@ -57,11 +57,11 @@ const yieldForecastData = [
 ]
 
 const pestDistribution = [
-  { name: 'Aphids', value: 35, color: 'hsl(var(--destructive))' },
-  { name: 'Beetles', value: 25, color: 'hsl(var(--warning))' },
-  { name: 'Caterpillars', value: 20, color: 'hsl(var(--primary))' },
-  { name: 'Mites', value: 15, color: 'hsl(var(--accent))' },
-  { name: 'Others', value: 5, color: 'hsl(var(--muted-foreground))' },
+  { name: 'Aphids', value: 35, color: '#EF4444' },
+  { name: 'Beetles', value: 25, color: '#F87171' },
+  { name: 'Caterpillars', value: 20, color: '#22C55E' },
+  { name: 'Mites', value: 15, color: '#4ADE80' },
+  { name: 'Others', value: 5, color: '#16A34A' },
 ]
 
 const recentAlerts = [
@@ -235,12 +235,12 @@ export default function DashboardPage() {
                   <AreaChart data={cropHealthData}>
                     <defs>
                       <linearGradient id="healthGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#22C55E" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="pestGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <XAxis 
@@ -264,16 +264,18 @@ export default function DashboardPage() {
                     <Area
                       type="monotone"
                       dataKey="health"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
+                      stroke="#22C55E"
+                      strokeWidth={3}
                       fill="url(#healthGradient)"
+                      name="Crop Health"
                     />
                     <Area
                       type="monotone"
                       dataKey="pests"
-                      stroke="hsl(var(--destructive))"
-                      strokeWidth={2}
+                      stroke="#EF4444"
+                      strokeWidth={3}
                       fill="url(#pestGradient)"
+                      name="Pest Activity"
                     />
                   </AreaChart>
                 </ResponsiveContainer>

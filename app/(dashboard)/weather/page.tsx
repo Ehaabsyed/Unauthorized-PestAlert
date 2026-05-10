@@ -284,12 +284,12 @@ export default function WeatherPage() {
                     <AreaChart data={hourlyData}>
                       <defs>
                         <linearGradient id="tempGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#2563EB" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="feelsGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.2} />
-                          <stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#60A5FA" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#60A5FA" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -297,8 +297,8 @@ export default function WeatherPage() {
                       <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
                       <Tooltip contentStyle={tooltipStyle} />
                       <Legend wrapperStyle={{ color: 'hsl(var(--foreground))' }} />
-                      <Area type="monotone" dataKey="temp" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#tempGrad)" name="Temperature (°C)" />
-                      <Area type="monotone" dataKey="feelsLike" stroke="hsl(var(--chart-5))" strokeWidth={2} strokeDasharray="5 5" fill="url(#feelsGrad)" name="Feels Like (°C)" />
+                      <Area type="monotone" dataKey="temp" stroke="#2563EB" strokeWidth={2} fill="url(#tempGrad)" name="Temperature (°C)" />
+                      <Area type="monotone" dataKey="feelsLike" stroke="#60A5FA" strokeWidth={2} strokeDasharray="5 5" fill="url(#feelsGrad)" name="Feels Like (°C)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -362,8 +362,8 @@ export default function WeatherPage() {
                     <BarChart data={forecast}>
                       <defs>
                         <linearGradient id="windGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.9} />
-                          <stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0.4} />
+                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.9} />
+                          <stop offset="95%" stopColor="#2563EB" stopOpacity={0.4} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
