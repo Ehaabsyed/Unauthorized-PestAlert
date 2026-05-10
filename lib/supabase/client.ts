@@ -9,6 +9,9 @@ export function createClient() {
 
   if (!url || !key || url === 'PLACEHOLDER' || !url.startsWith('https://')) {
     console.warn('[Supabase] Missing or invalid credentials. Database features will be simulated.');
+    if (typeof window !== 'undefined') {
+      console.log('%c[Supabase Warning] Database actions will fail until valid keys are provided in .env.local', 'color: orange; font-weight: bold;');
+    }
     return null;
   }
   
@@ -59,7 +62,13 @@ export interface Report {
   user_id: string
   title: string
   type: string
-  content: string
+  content?: string
+  summary?: string
+  pest_count?: number
+  crop_health?: number
+  weather_condition?: string
+  risk_level?: string
+  recommendations?: string
   data?: any
   status: 'draft' | 'ready' | 'archived'
   created_at: string
@@ -68,12 +77,13 @@ export interface Report {
 export interface CommunityPost {
   id: string
   user_id: string
-  author_name: string
+  username: string
   content: string
+  image_url?: string
   category: 'discussion' | 'question' | 'solution' | 'news'
-  likes_count?: number
+  likes_count: number
+  comments_count: number
   created_at: string
-  updated_at: string
 }
 
 export interface Alert {

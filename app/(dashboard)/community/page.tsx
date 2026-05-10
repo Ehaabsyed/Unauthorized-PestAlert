@@ -49,16 +49,18 @@ export default function CommunityPage() {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set())
   const [posting, setPosting] = useState(false)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
 
   const filteredPosts = posts.filter(p =>
     p.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.author_name ?? '').toLowerCase().includes(searchTerm.toLowerCase())
+    (p.username ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return }
+    setPhotoFile(file)
     const reader = new FileReader()
     reader.onload = () => setPhotoPreview(reader.result as string)
     reader.readAsDataURL(file)
@@ -67,18 +69,59 @@ export default function CommunityPage() {
   const handlePost = async () => {
     if (!newPost.trim() && !photoPreview) { toast.error('Please write something or add a photo'); return }
     if (!user) { toast.error('You must be logged in to post'); return }
+    
     setPosting(true)
-    const { error } = await createPost({
-      user_id: user.uid,
-      author_name: user.displayName ?? user.email ?? 'Farmer',
-      content: newPost || '(Photo post)',
-      category: 'discussion',
-    })
-    setPosting(false)
-    if (error) { toast.error('Failed to post: ' + error); return }
-    setNewPost('')
-    setPhotoPreview(null)
-    toast.success('Post published!')
+    try {
+      let imageUrl = undefined
+      
+      // Handle image upload if photoFile exists
+      if (photoFile) {
+        const { createClient } = await import('@/lib/supabase/client')
+        const supabase = createClient()
+        if (supabase) {
+          const fileExt = photoFile.name.split('.').pop()
+          const fileName = `${user.uid}-${Date.now()}.${fileExt}`
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('community-images')
+            .upload(fileName, photoFile)
+            
+          if (uploadError) {
+            console.error('Upload error:', uploadError)
+            toast.error('Image upload failed: ' + uploadError.message)
+            // Continue post without image or stop? Let's stop.
+            setPosting(false)
+            return
+          }
+          
+          const { data: { publicUrl } } = supabase.storage
+            .from('community-images')
+            .getPublicUrl(fileName)
+          imageUrl = publicUrl
+        }
+      }
+
+      const { error } = await createPost({
+        user_id: user.uid,
+        username: user.displayName ?? user.email?.split('@')[0] ?? 'Farmer',
+        content: newPost || '(Photo post)',
+        category: 'discussion',
+        image_url: imageUrl,
+      })
+      
+      if (error) {
+        toast.error('Failed to post: ' + error)
+      } else {
+        setNewPost('')
+        setPhotoPreview(null)
+        setPhotoFile(null)
+        toast.success('Post published!')
+      }
+    } catch (err: any) {
+      console.error('Post error:', err)
+      toast.error('An unexpected error occurred')
+    } finally {
+      setPosting(false)
+    }
   }
 
   const handleLike = async (postId: string, currentLikes: number) => {
@@ -200,12 +243,12 @@ export default function CommunityPage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
                             <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                              {initials}
+                              {(post.username ?? 'U').slice(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium text-foreground">{post.author_name ?? 'Farmer'}</span>
+                              <span className="font-medium text-foreground">{post.username ?? 'Farmer'}</span>
                               <Badge variant="outline" className="text-xs">{post.category}</Badge>
                             </div>
                             <span className="text-xs text-muted-foreground">
@@ -221,17 +264,23 @@ export default function CommunityPage() {
                       {/* Content */}
                       <p className="text-foreground leading-relaxed mb-3">{post.content}</p>
 
+                      {post.image_url && (
+                        <div className="mb-4 rounded-lg overflow-hidden border border-border">
+                          <img src={post.image_url} alt="Post content" className="w-full object-contain max-h-[400px]" />
+                        </div>
+                      )}
+
                       {/* Actions */}
                       <div className="flex items-center gap-4 pt-3 border-t border-border">
                         <Button
                           variant="ghost"
                           size="sm"
                           className={isLiked ? 'text-destructive' : 'text-muted-foreground'}
-                          onClick={() => handleLike(post.id, post.likes)}
+                          onClick={() => handleLike(post.id, post.likes_count)}
                           disabled={isLiked}
                         >
                           <Heart className={`w-4 h-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-                          {post.likes}
+                          {post.likes_count}
                         </Button>
                         <Button variant="ghost" size="sm" className="text-muted-foreground">
                           <MessageSquare className="w-4 h-4 mr-1" />

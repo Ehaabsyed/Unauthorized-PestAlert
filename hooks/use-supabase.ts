@@ -172,6 +172,10 @@ export function useCommunityPosts(limit = 20) {
     setError(null)
     try {
       const supabase = createClient()
+      if (!supabase) {
+        setLoading(false)
+        return
+      }
       const { data, error } = await supabase
         .from('community_posts')
         .select('*')
@@ -189,13 +193,39 @@ export function useCommunityPosts(limit = 20) {
     }
   }, [limit])
 
-  useEffect(() => { fetchPosts() }, [fetchPosts])
+  useEffect(() => {
+    fetchPosts()
 
-  const createPost = async (post: Pick<CommunityPost, 'user_id' | 'author_name' | 'content' | 'category'>) => {
+    // Realtime subscription
     const supabase = createClient()
+    if (!supabase) return
+
+    const channel = supabase
+      .channel('community-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'community_posts',
+        },
+        () => {
+          fetchPosts()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchPosts])
+
+  const createPost = async (post: Omit<CommunityPost, 'id' | 'created_at' | 'likes_count' | 'comments_count'>) => {
+    const supabase = createClient()
+    if (!supabase) return { error: 'Supabase not configured' }
     const { data, error } = await supabase
       .from('community_posts')
-      .insert({ ...post, likes: 0, comments_count: 0 })
+      .insert({ ...post, likes_count: 0, comments_count: 0 })
       .select()
       .single()
     if (!error && data) setPosts(prev => [data, ...prev])
@@ -204,22 +234,24 @@ export function useCommunityPosts(limit = 20) {
 
   const likePost = async (id: string, currentLikes: number) => {
     const supabase = createClient()
+    if (!supabase) return { error: 'Supabase not configured' }
     const { error } = await supabase
       .from('community_posts')
-      .update({ likes: currentLikes + 1 })
+      .update({ likes_count: currentLikes + 1 })
       .eq('id', id)
-    if (!error) setPosts(prev => prev.map(p => p.id === id ? { ...p, likes: currentLikes + 1 } : p))
+    if (!error) setPosts(prev => prev.map(p => p.id === id ? { ...p, likes_count: currentLikes + 1 } : p))
     return { error: error?.message }
   }
 
   const deletePost = async (id: string) => {
     const supabase = createClient()
+    if (!supabase) return { error: 'Supabase not configured' }
     const { error } = await supabase.from('community_posts').delete().eq('id', id)
     if (!error) setPosts(prev => prev.filter(p => p.id !== id))
     return { error: error?.message }
   }
 
-  return { posts, loading, error, createPost, likePost, deletePost, refetch: fetchPosts }
+  return { posts, loading, error, createPost, likePost, deletePost, refreshPosts: fetchPosts }
 }
 
 // ─── Post Comments ────────────────────────────────────────────────────────────
@@ -270,48 +302,97 @@ export function useReports(userId: string | undefined) {
     if (!userId) { setLoading(false); return }
     setLoading(true)
     setError(null)
+    const supabase = createClient()
+    if (!supabase) { 
+      console.warn('[useReports] Supabase client not initialized');
+      setLoading(false); 
+      return 
+    }
+
     try {
-      const supabase = createClient()
-      if (!supabase) { setLoading(false); return }
       const { data, error } = await supabase
         .from('reports')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
+      
       if (error) {
         console.warn('[useReports] Supabase error:', error.message)
         setError(error.message)
+      } else {
+        setReports(data ?? [])
       }
-      setReports(data ?? [])
     } catch (e) {
-      console.warn('[useReports] fetch failed:', e)
+      console.error('[useReports] fetch failed:', e)
+      setError('Failed to fetch reports')
     } finally {
       setLoading(false)
     }
   }, [userId])
 
-  useEffect(() => { fetchReports() }, [fetchReports])
+  useEffect(() => { 
+    fetchReports()
+    
+    // Realtime subscription
+    const supabase = createClient()
+    if (!supabase || !userId) return
+
+    const channel = supabase
+      .channel('reports-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reports',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log('[useReports] Realtime update:', payload)
+          fetchReports()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchReports, userId])
 
   const createReport = async (report: Omit<Report, 'id' | 'created_at'>) => {
     const supabase = createClient()
     if (!supabase) return { error: 'Supabase not configured' }
-    const { data, error } = await supabase
-      .from('reports')
-      .insert(report)
-      .select()
-      .single()
-    if (!error && data) setReports(prev => [data, ...prev])
-    return { data, error: error?.message }
+    
+    try {
+      const { data, error } = await supabase
+        .from('reports')
+        .insert(report)
+        .select()
+        .single()
+      
+      if (!error && data) {
+        setReports(prev => [data, ...prev])
+      }
+      return { data, error: error?.message }
+    } catch (e: any) {
+      return { error: e.message }
+    }
   }
 
   const deleteReport = async (id: string) => {
     const supabase = createClient()
-    const { error } = await supabase.from('reports').delete().eq('id', id)
-    if (!error) setReports(prev => prev.filter(r => r.id !== id))
-    return { error: error?.message }
+    if (!supabase) return { error: 'Supabase not configured' }
+
+    try {
+      const { error } = await supabase.from('reports').delete().eq('id', id)
+      if (!error) setReports(prev => prev.filter(r => r.id !== id))
+      return { error: error?.message }
+    } catch (e: any) {
+      return { error: e.message }
+    }
   }
 
-  return { reports, loading, error, createReport, deleteReport, refetch: fetchReports }
+  return { reports, loading, error, createReport, deleteReport, refreshReports: fetchReports }
 }
 
 // ─── Dashboard Stats ─────────────────────────────────────────────────────────

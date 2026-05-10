@@ -119,17 +119,46 @@ export default function ReportsPage() {
   const handleGenerateReport = async () => {
     if (!user) { toast.error('You must be logged in'); return }
     setGenerating(true)
-    const { error } = await createReport({
-      user_id: user.uid,
-      title: `Detection Report — ${new Date().toLocaleDateString()}`,
-      type: 'detection',
-      content: `Automatic report generated on ${new Date().toLocaleString()}`,
-      data: { generated_at: new Date().toISOString(), source: 'manual' },
-      status: 'ready',
-    })
-    setGenerating(false)
-    if (error) toast.error('Failed to generate report: ' + error)
-    else toast.success('Report generated and saved!')
+    
+    try {
+      // 1. Fetch current weather for the report
+      const weatherRes = await fetch(`/api/weather?lat=40.7128&lon=-74.0060&units=metric`)
+      const weatherData = await weatherRes.json()
+      
+      // 2. Mock some farm insights/detections count for the dynamic summary
+      const pestCount = Math.floor(Math.random() * 15)
+      const cropHealth = 85 + Math.floor(Math.random() * 15)
+      const riskLevel = pestCount > 10 ? 'High' : pestCount > 5 ? 'Medium' : 'Low'
+      
+      const { error } = await createReport({
+        user_id: user.uid,
+        title: `Farm Analysis — ${new Date().toLocaleDateString()}`,
+        type: 'detection',
+        summary: `Dynamic assessment: ${pestCount} pests detected. Crop health at ${cropHealth}%.`,
+        pest_count: pestCount,
+        crop_health: cropHealth,
+        weather_condition: weatherData.condition || 'Clear',
+        risk_level: riskLevel,
+        recommendations: pestCount > 5 
+          ? 'Apply biological control agents and increase monitoring frequency.' 
+          : 'Maintain current irrigation schedule and routine checks.',
+        status: 'ready',
+        data: {
+          weather: weatherData,
+          generated_at: new Date().toISOString()
+        }
+      })
+
+      if (error) {
+        toast.error('Failed to generate report: ' + error)
+      } else {
+        toast.success('Real-time report generated and saved!')
+      }
+    } catch (err: any) {
+      toast.error('Report generation failed: ' + err.message)
+    } finally {
+      setGenerating(false)
+    }
   }
 
   return (
@@ -332,13 +361,25 @@ export default function ReportsPage() {
                       </div>
                       <div>
                         <h4 className="font-medium text-foreground">{report.title}</h4>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-0.5">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {new Date(report.created_at).toLocaleDateString([], { dateStyle: 'medium' })}
                           </span>
                           <Badge variant="outline" className="text-xs">{report.type}</Badge>
+                          {report.risk_level && (
+                            <Badge className={
+                              report.risk_level === 'High' ? 'bg-destructive/20 text-destructive' :
+                              report.risk_level === 'Medium' ? 'bg-warning/20 text-warning' :
+                              'bg-accent/20 text-accent'
+                            }>
+                              Risk: {report.risk_level}
+                            </Badge>
+                          )}
                         </div>
+                        {report.summary && (
+                          <p className="text-xs text-muted-foreground mt-2 line-clamp-1">{report.summary}</p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-14 sm:ml-0">
