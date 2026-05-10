@@ -113,22 +113,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     if (!auth) {
-      // Demo mode: accept any credentials
       setIsDemo(true)
       setUser({ ...DEMO_USER, email })
+      toast.info('Signed in as Demo User')
       return
     }
-    await signInWithEmailAndPassword(auth, email, password)
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+    } catch (error: any) {
+      if (error.code === 'auth/invalid-api-key' || error.message?.includes('API key not valid')) {
+        console.warn('[AgriTech] Invalid API Key detected. Falling back to Demo Mode.')
+        setIsDemo(true)
+        setUser(DEMO_USER)
+        toast.info('Environment not configured. Using Demo Mode.')
+      } else {
+        throw error
+      }
+    }
   }
 
   const signUp = async (email: string, password: string, name: string) => {
     if (!auth) {
       setIsDemo(true)
       setUser({ ...DEMO_USER, email, displayName: name })
+      toast.info('Account created in Demo Mode')
       return
     }
-    const result = await createUserWithEmailAndPassword(auth, email, password)
-    await updateProfile(result.user, { displayName: name })
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password)
+      await updateProfile(result.user, { displayName: name })
+    } catch (error: any) {
+      if (error.code === 'auth/invalid-api-key' || error.message?.includes('API key not valid')) {
+        setIsDemo(true)
+        setUser(DEMO_USER)
+        toast.info('Environment not configured. Using Demo Mode.')
+      } else {
+        throw error
+      }
+    }
   }
 
   const logout = async () => {
@@ -147,16 +169,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({ prompt: 'select_account' })
+
     try {
       await signInWithPopup(auth, provider)
-    } catch (error) {
-      // Popup blocked or unauthorized-domain — fall back to redirect
-      if (isUnauthorizedDomainError(error)) {
-        throw new Error(
-          'Google Sign-In is blocked on this preview domain. Please add this domain to your Firebase Console under Authentication > Settings > Authorized domains, or use email/password.'
-        )
+    } catch (error: any) {
+      console.error('[AgriTech] Google Sign-In Error:', error.code, error.message)
+      
+      if (error.code === 'auth/popup-blocked') {
+        toast.error('Sign-in popup was blocked by your browser. Please allow popups for this site.')
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // Multiple triggers or manual cancel
+      } else if (isUnauthorizedDomainError(error)) {
+        toast.info('Using Demo Mode: Domain not authorized in Firebase Console.')
+        setIsDemo(true)
+        setUser(DEMO_USER)
+      } else {
+        toast.error('Failed to sign in with Google. Please try again.')
       }
-      throw error
     }
   }
 

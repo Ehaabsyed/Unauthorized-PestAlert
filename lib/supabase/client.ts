@@ -1,22 +1,23 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export function createClient() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('@supabase/ssr: Your project\'s URL and API key are required to create a Supabase client!')
+  if (!supabaseUrl || !supabaseAnonKey || !supabaseUrl.startsWith('http')) {
+    console.warn('Supabase credentials missing or invalid. Returning null client.')
+    return null
   }
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
-export const hasSupabaseConfig = !!(supabaseUrl && supabaseAnonKey)
+export const hasSupabaseConfig = !!(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'))
 
 // Lazy singleton for backwards compatibility
-let _client: ReturnType<typeof createBrowserClient> | null = null
+let _client: any = null
 
 export function getSupabaseClient() {
-  if (!_client && supabaseUrl && supabaseAnonKey) {
+  if (!_client && hasSupabaseConfig) {
     _client = createBrowserClient(supabaseUrl, supabaseAnonKey)
   }
   return _client
