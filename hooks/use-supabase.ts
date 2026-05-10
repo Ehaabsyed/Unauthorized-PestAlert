@@ -66,7 +66,7 @@ export function useAIDetections(userId: string | undefined, limit = 20) {
     const supabase = createClient()
     if (!supabase) { setLoading(false); return }
     const { data, error } = await supabase
-      .from('ai_detections')
+      .from('detections')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -82,7 +82,7 @@ export function useAIDetections(userId: string | undefined, limit = 20) {
     const supabase = createClient()
     if (!supabase) return { error: 'Supabase not configured' }
     const { data, error } = await supabase
-      .from('ai_detections')
+      .from('detections')
       .insert(detection)
       .select()
       .single()
@@ -92,12 +92,24 @@ export function useAIDetections(userId: string | undefined, limit = 20) {
 
   const deleteDetection = async (id: string) => {
     const supabase = createClient()
-    const { error } = await supabase.from('ai_detections').delete().eq('id', id)
+    const { error } = await supabase.from('detections').delete().eq('id', id)
     if (!error) setDetections(prev => prev.filter(d => d.id !== id))
     return { error: error?.message }
   }
 
   return { detections, loading, error, addDetection, deleteDetection, refetch: fetchDetections }
+}
+
+/**
+ * useDetections (Alias for useAIDetections to support existing code)
+ */
+export function useDetections(userId: string | undefined, limit = 20) {
+  const hooks = useAIDetections(userId, limit)
+  return {
+    ...hooks,
+    createDetection: hooks.addDetection,
+    refreshDetections: hooks.refetch
+  }
 }
 
 // ─── Alerts ───────────────────────────────────────────────────────────────────
@@ -326,7 +338,7 @@ export function useDashboardStats(userId: string | undefined) {
       try {
         const [detectionsRes, alertsRes, postsRes] = await Promise.all([
           supabase
-            .from('ai_detections')
+            .from('detections')
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })

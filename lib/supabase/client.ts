@@ -46,9 +46,10 @@ export interface AIDetection {
   id: string
   user_id: string
   image_url?: string
-  detected_pests?: string[]
+  pest_name: string
   confidence: number
   severity: 'low' | 'medium' | 'high' | 'critical'
+  location?: string
   recommendations?: string[]
   created_at: string
 }
@@ -59,9 +60,9 @@ export interface Report {
   title: string
   type: string
   content: string
-  status: 'draft' | 'published' | 'archived'
+  data?: any
+  status: 'draft' | 'ready' | 'archived'
   created_at: string
-  updated_at: string
 }
 
 export interface CommunityPost {

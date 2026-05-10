@@ -123,7 +123,9 @@ export default function ReportsPage() {
       user_id: user.uid,
       title: `Detection Report — ${new Date().toLocaleDateString()}`,
       type: 'detection',
+      content: `Automatic report generated on ${new Date().toLocaleString()}`,
       data: { generated_at: new Date().toISOString(), source: 'manual' },
+      status: 'ready',
     })
     setGenerating(false)
     if (error) toast.error('Failed to generate report: ' + error)

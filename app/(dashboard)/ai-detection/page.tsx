@@ -175,11 +175,18 @@ export default function AIDetectionPage() {
         // Save to Supabase
         if (user) {
           addDetection({
-            pest_type: topResult.className.split('__').join(' ').split('_').join(' '),
+            user_id: user.uid,
+            pest_name: topResult.className.split('__').join(' ').split('_').join(' '),
             confidence: Math.round(topResult.probability * 100),
             severity: getSeverity(topResult.className),
             location: 'Assigned Field', // Default
             image_url: preview, // In production, upload to bucket first
+            recommendations: [
+              getTreatment(topResult.className),
+              'Monitor nearby crops for similar symptoms',
+              'Validate results with a field expert if symptoms persist',
+              'Log this detection in the farm outbreak map'
+            ]
           }).catch(err => console.error("Failed to save detection:", err))
         }
 
