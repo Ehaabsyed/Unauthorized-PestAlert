@@ -23,6 +23,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { predict, getSeverity, getTreatment } from '@/lib/ai-model'
 
 interface DetectionResult {
   pestName: string
@@ -109,7 +110,7 @@ export default function AIDetectionPage() {
   }
 
   const handleAnalyze = async () => {
-    if (!file) return
+    if (!file || !preview) return
 
     setAnalyzing(true)
     setScanProgress(0)
@@ -126,11 +127,37 @@ export default function AIDetectionPage() {
     }, 300)
 
     try {
-      const detection = await mockAnalyze()
-      setScanProgress(100)
-      setResult(detection)
-      toast.success('Analysis complete!')
+      // Create an image element to pass to the model
+      const img = new Image()
+      img.src = preview
+      await new Promise((resolve) => {
+        img.onload = resolve
+      })
+
+      const predictions = await predict(img)
+      const topResult = predictions[0]
+
+      if (topResult) {
+        setResult({
+          pestName: topResult.className.split('__').join(' ').split('_').join(' '),
+          diseaseName: topResult.className.includes('healthy') ? 'None Detected' : 'Infection Detected',
+          confidence: Math.round(topResult.probability * 100),
+          severity: getSeverity(topResult.className),
+          treatment: getTreatment(topResult.className),
+          outbreakProbability: Math.round(topResult.probability * 85), // Estimated probability
+          affectedArea: 'Localized to sample area',
+          recommendations: [
+            getTreatment(topResult.className),
+            'Monitor nearby crops for similar symptoms',
+            'Validate results with a field expert if symptoms persist',
+            'Log this detection in the farm outbreak map'
+          ]
+        })
+        setScanProgress(100)
+        toast.success('Analysis complete!')
+      }
     } catch (error) {
+      console.error('Analysis failed:', error)
       toast.error('Analysis failed. Please try again.')
     } finally {
       setAnalyzing(false)
