@@ -7,9 +7,11 @@ export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !key || url === 'PLACEHOLDER' || url === 'PASTE_SUPABASE_URL_HERE' || !url.startsWith('https://')) {
-    console.warn('[Supabase] Missing or invalid credentials. Database features will be simulated.');
+  const isValidUrl = (u: string | undefined) => u && u.startsWith('https://') && !u.includes('YOUR_PROJECT') && !u.includes('placeholder') && !u.includes('PASTE_SUPABASE')
+
+  if (!isValidUrl(url) || !key || key.includes('YOUR_SUPABASE') || key.includes('PASTE_SUPABASE')) {
     if (typeof window !== 'undefined') {
+      console.warn('[Supabase Client] Missing or invalid credentials. Database features will be simulated.');
       console.log('%c[Supabase Warning] Database actions will fail until valid keys are provided in .env.local', 'color: orange; font-weight: bold;');
     }
     return null;
