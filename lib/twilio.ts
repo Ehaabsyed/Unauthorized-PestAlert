@@ -5,10 +5,12 @@ import twilio from 'twilio';
  * This class is designed for backend usage only.
  */
 export class TwilioService {
-  private client: twilio.Twilio;
-  private fromPhoneNumber: string;
+  private client: twilio.Twilio | null = null;
+  private fromPhoneNumber: string | null = null;
 
-  constructor() {
+  private init() {
+    if (this.client) return;
+
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const phoneNumber = process.env.TWILIO_PHONE_NUMBER;
@@ -30,6 +32,11 @@ export class TwilioService {
    */
   async sendSms(to: string, body: string) {
     try {
+      this.init();
+      if (!this.client || !this.fromPhoneNumber) {
+        throw new Error('Twilio client failed to initialize');
+      }
+
       const message = await this.client.messages.create({
         body,
         from: this.fromPhoneNumber,

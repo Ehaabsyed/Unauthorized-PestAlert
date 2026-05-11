@@ -19,30 +19,24 @@ const hasFirebaseConfig = !!(
   !process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('placeholder')
 )
 
-let app: FirebaseApp | null = null
-let auth: Auth | null = null
-let analytics: Analytics | null = null
-
+// Prevent duplicate initialization
+let app: FirebaseApp
 try {
-  if (hasFirebaseConfig) {
-    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
-    auth = getAuth(app)
-    
-    // Initialize analytics only on client side
-    if (typeof window !== 'undefined') {
-      isSupported().then((supported) => {
-        if (supported && app) {
-          analytics = getAnalytics(app)
-        }
-      }).catch(err => console.debug('Analytics not supported'))
-    }
-  } else {
-    console.warn('[AgriTech] Firebase config is missing or using placeholders. Auth will run in Demo Mode.')
-  }
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
 } catch (e) {
-  console.error('[AgriTech] Firebase initialization error:', e)
-  app = null
-  auth = null
+  app = getApp()
 }
 
-export { app, auth, analytics, hasFirebaseConfig }
+const auth = getAuth(app)
+
+let analytics: Analytics | null = null
+if (typeof window !== 'undefined') {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app)
+    }
+  }).catch(err => console.debug('Analytics not supported'))
+}
+
+export { app, auth, analytics }
+export const hasFirebaseConfig = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== 'placeholder-api-key'
