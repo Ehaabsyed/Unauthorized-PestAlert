@@ -76,16 +76,16 @@ export async function GET(request: NextRequest) {
       temp: weatherData.main?.temp != null ? Math.round(weatherData.main.temp) : 0,
       humidity: weatherData.main?.humidity ?? 0,
       windSpeed: weatherData.wind?.speed != null ? Math.round(weatherData.wind.speed * 10) / 10 : 0,
-      pressure: weatherData.main?.pressure ?? 0,
+      pressure: weatherData.main?.pressure ?? 'N/A',
       visibility: weatherData.visibility != null ? Math.round(weatherData.visibility / 1000) : 0,
       description: weatherData.weather?.[0]?.description ?? 'No description available',
       condition: weatherData.weather?.[0]?.main ?? 'Unknown',
       feelsLike: weatherData.main?.feels_like != null ? Math.round(weatherData.main.feels_like) : 0,
       tempMin: weatherData.main?.temp_min != null ? Math.round(weatherData.main.temp_min) : 0,
       tempMax: weatherData.main?.temp_max != null ? Math.round(weatherData.main.temp_max) : 0,
-      cloudiness: weatherData.clouds?.all ?? 0,
+      cloudiness: weatherData.clouds?.all ?? 'N/A',
       uvIndex: Math.round(uvIndex * 10) / 10,
-      precipitation: weatherData.rain?.['1h'] || weatherData.snow?.['1h'] || 0,
+      precipitation: weatherData.rain?.['1h'] ?? 0,
     };
 
     return NextResponse.json(processedData);
