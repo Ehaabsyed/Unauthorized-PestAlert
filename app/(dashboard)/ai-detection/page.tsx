@@ -117,6 +117,22 @@ export default function AIDetectionPage() {
     reader.readAsDataURL(selectedFile)
   }
 
+  const isValidCropImage = (className: string, confidence: number): boolean => {
+    // Minimum confidence threshold for valid crop/plant images
+    const MIN_CONFIDENCE = 0.25
+    
+    // If confidence is too low, image is likely not a crop/plant
+    if (confidence < MIN_CONFIDENCE) {
+      return false
+    }
+    
+    // List of valid crop/pest related classes
+    const validClasses = ['healthy', 'virus', 'blight', 'spider_mites', 'bacterial_spot', 'rust', 'leaf', 'plant', 'crop', 'pest']
+    const hasValidClass = validClasses.some(validClass => className.toLowerCase().includes(validClass))
+    
+    return hasValidClass
+  }
+
   const handleAnalyze = async () => {
     if (!file || !preview) return
 
@@ -146,6 +162,14 @@ export default function AIDetectionPage() {
       const topResult = predictions[0]
 
       if (topResult) {
+        // Validate that the image is actually a crop/plant image
+        if (!isValidCropImage(topResult.className, topResult.probability)) {
+          toast.error('Image does not appear to be a crop or plant. Please upload an image of crops, plants, or leaves.')
+          setAnalyzing(false)
+          clearInterval(progressInterval)
+          return
+        }
+
         setResult({
           pestName: topResult.className.split('__').join(' ').split('_').join(' '),
           diseaseName: topResult.className.includes('healthy') ? 'None Detected' : 'Infection Detected',
@@ -394,6 +418,17 @@ export default function AIDetectionPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    {/* Analyzed Image */}
+                    {preview && (
+                      <div className="relative aspect-video max-h-[400px] mx-auto overflow-hidden rounded-lg border border-border">
+                        <img
+                          src={preview}
+                          alt="Analyzed crop image"
+                          className="w-full h-full object-contain bg-secondary"
+                        />
+                      </div>
+                    )}
+
                     {/* Detection Info */}
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="p-4 bg-secondary rounded-xl">
