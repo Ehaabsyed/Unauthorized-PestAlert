@@ -17,7 +17,7 @@ export function createClient() {
     return null;
   }
   
-  return createBrowserClient(url, key);
+  return createBrowserClient(url!, key!);
 }
 
 export const hasSupabaseConfig = !!(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'))
@@ -27,7 +27,7 @@ let _client: any = null
 
 export function getSupabaseClient() {
   if (!_client && hasSupabaseConfig) {
-    _client = createBrowserClient(supabaseUrl, supabaseAnonKey)
+    _client = createBrowserClient(supabaseUrl!, supabaseAnonKey!)
   }
   return _client
 }
