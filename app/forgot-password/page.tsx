@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -7,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuth } from '@/lib/firebase/auth-context'
+import { useAuth } from '@/lib/supabase/auth-context'
 import { Mail, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { toast } from 'sonner'
@@ -16,7 +18,8 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const { resetPassword } = useAuth()
+  const auth = (useAuth() as any) || {}
+  const resetPassword = auth.resetPassword
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
