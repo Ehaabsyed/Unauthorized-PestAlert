@@ -7,6 +7,10 @@ export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  if (!url || url.includes('YOUR_PROJECT')) {
+    throw new Error('Invalid SUPABASE_URL — check your .env.local');
+  }
+
   const isValidUrl = (u: string | undefined) => u && u.startsWith('https://') && !u.includes('YOUR_PROJECT') && !u.includes('placeholder') && !u.includes('PASTE_SUPABASE')
 
   if (!isValidUrl(url) || !key || key.includes('YOUR_SUPABASE') || key.includes('PASTE_SUPABASE')) {
